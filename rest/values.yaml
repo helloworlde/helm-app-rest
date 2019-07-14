@@ -1,0 +1,10 @@
+backend:
+  image: hellowoodes/rest
+  tag: "latest"
+  pullPolicy: IfNotPresent
+  replicas: 1
+
+namespace: rest
+
+service:
+  type: NodePort

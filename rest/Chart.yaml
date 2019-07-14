@@ -1,0 +1,7 @@
+apiVersion: v1
+appVersion: "1.0"
+description: Rest application with helm
+name: rest
+version: 0.1.0
+maintainers:
+  - name: HelloWood
