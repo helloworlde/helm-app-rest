@@ -210,7 +210,38 @@ NOTES:
   echo http://$NODE_IP:$NODE_PORT
 ```
 
-执行提示后获取到服务的节点地址和端口
+#### 查看 
+
+- 查看 Helm 信息
+
+```bash
+helm list
+```
+
+```
+NAME	REVISION	UPDATED                 	STATUS  	CHART     	APP VERSION	NAMESPACE
+rest	1       	Sun Jul 14 18:55:25 2019	DEPLOYED	rest-0.1.0	1.0        	default
+```
+
+- 查看 Deployment、Service、Pod
+
+```bash
+kubectl get all -l app=backend
+``` 
+
+```bash
+NAME                           READY   STATUS    RESTARTS   AGE
+pod/backend-5bc9d6cb99-kmpvx   1/1     Running   0          7m15s
+
+NAME                 TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)          AGE
+service/backend      NodePort    10.104.248.37   <none>        8080:31064/TCP   7m15s
+
+NAME                      READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/backend   1/1     1            1           7m15s
+
+NAME                                 DESIRED   CURRENT   READY   AGE
+replicaset.apps/backend-5bc9d6cb99   1         1         1       7m15s
+```
 
 #### 测试 
 
@@ -224,4 +255,99 @@ Content-Type: text/plain; charset=utf-8
 Date: Sun, 14 Jul 2019 10:53:18 GMT
 
 Pong
+```
+
+### 打包 
+
+```bash
+helm package ./rest
+```
+
+```
+Successfully packaged chart and saved it to: /path/to/project/rest-0.1.0.tgz
+```
+
+### 更新
+
+当应用发生了更新之后，需要升级部署，这时候可以通过修改 Helm 的配置来实现；如镜像版本从1.0 更新到 1.1
+
+- 修改 values.yaml
+
+```yaml
+backend:
+  image: hellowoodes/rest
+  tag: "1.1"
+  pullPolicy: IfNotPresent
+  replicas: 1
+
+namespace: default
+
+service:
+  type: NodePort
+```
+
+- 执行更新 
+
+```bash
+ helm upgrade rest ./rest --repo local
+```
+
+```bash
+Release "rest" has been upgraded. Happy Helming!
+LAST DEPLOYED: Sun Jul 14 21:03:57 2019
+NAMESPACE: default
+STATUS: DEPLOYED
+
+RESOURCES:
+==> v1/Pod(related)
+NAME                     READY  STATUS   RESTARTS  AGE
+backend-56876f876-vvbzz  1/1    Running  0         85s
+
+==> v1/Service
+NAME     TYPE      CLUSTER-IP   EXTERNAL-IP  PORT(S)         AGE
+backend  NodePort  10.97.22.28  <none>       8080:31496/TCP  7m10s
+
+==> v1beta1/Deployment
+NAME     READY  UP-TO-DATE  AVAILABLE  AGE
+backend  1/1    1           1          7m10s
+
+
+NOTES:
+1. Get the application URL by running these commands:
+  export NODE_PORT=$(kubectl get service -l app=backend --namespace default -o jsonpath="{.items[0].spec.ports[0].nodePort}")
+  export NODE_IP=$(kubectl get nodes --namespace default -o jsonpath="{.items[0].status.addresses[0].address}")
+  echo http://$NODE_IP:$NODE_PORT
+```
+
+等待更新完成后，查看 Pod 的描述信息
+
+```bash
+kubectl describe pod backend-56876f876-vvbzz
+```
+
+可以看到 pod 的镜像已经从 1.0 更新到了 1.1 
+
+```
+Normal  Pulled     29s   kubelet, ubuntu-server  Container image "hellowoodes/rest:1.1" already present on machine
+```
+
+### 
+
+### 删除应用
+
+删除 Helm 应用后，所有相关的 Service，Deployment，Pod 等都会被删除
+
+```bash
+helm delete --purge rest
+```
+
+### 查看 Repo 应用
+
+```bash
+helm serve
+```
+
+```
+Regenerating index. This may take a moment.
+Now serving you on 127.0.0.1:8879
 ```

@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 )
 
 func main() {
 	http.HandleFunc("/ping", func(writer http.ResponseWriter, request *http.Request) {
-		fmt.Println("Pong")
+		fmt.Printf("Pong %v", time.Now())
 		_, _ = fmt.Fprint(writer, "Pong")
 	})
 
